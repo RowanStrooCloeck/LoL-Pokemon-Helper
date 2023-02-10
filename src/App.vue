@@ -25,6 +25,7 @@
         </div>
       </div>
     </template>
+  </div>
 </template>
 
 <script lang="ts">
