@@ -17,7 +17,7 @@
         <h2>{{ selection.name }}</h2>
         <div class="mastery-points">
           <h4>Mastery Points</h4>
-          <p>{{ selection.masteryPoints }}</p>
+          <p>{{ getLocaleNumberString(selection.masteryPoints) }}</p>
         </div>
         <div class="next-milestone">
           <h4>Next Milestone</h4>
@@ -69,6 +69,11 @@ export default class App extends Vue {
     return `${this.imageUrl}/${name}.png`
   }
 
+  public getLocaleNumberString(value: number) {    
+    // @ts-ignore
+    return value.toLocaleString(this.locale)
+  }
+
   public getNextMilestone(value: number) {
     switch (true) {
       case (value < 100):
@@ -76,15 +81,15 @@ export default class App extends Vue {
       case (value < 500):
         return 500;
       case (value < 1000):
-        return 1000;
+        return this.getLocaleNumberString(1000);
       case (value < 5000):
-        return 5000;
+        return this.getLocaleNumberString(5000);
       case (value < 10000):
-        return 10000;
+        return this.getLocaleNumberString(10000);
       case (value < 50000):
-        return 50000;
+        return this.getLocaleNumberString(50000);
       case (value < 100000):
-        return 100000;
+        return this.getLocaleNumberString(100000);
       default:
         return 0;
     }
