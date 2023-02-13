@@ -1,6 +1,7 @@
 import type { LolDataObject } from "./LolDataObject";
 
 export interface TieredLolDataObjects {
+    challenger: LolDataObject[],
     grandmaster: LolDataObject[],
     master: LolDataObject[],
     diamond: LolDataObject[],

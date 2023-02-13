@@ -33,36 +33,38 @@
   </div>
 
   <!-- 100k and above -->
-  <TierList :tierIcon="getTierIconUrl('NotFound')" :data="tieredData.grandmaster" 
-    description="100k and above" :amount="tieredData.grandmaster.length" />
+  <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger"
+    :description="thresholds.CHALLENGER + ' and above'" :amount="tieredData.challenger.length" />
+
+  <!-- 100k and above -->
+  <TierList :tierIcon="getTierIconUrl('GrandMaster')" :data="tieredData.grandmaster"
+    :description="thresholds.GRANDMASTER + ' to ' + thresholds.MASTER" :amount="tieredData.grandmaster.length" />
 
   <!-- 99.999 to 50.000 -->
-  <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master"
-    description="100k to 50k" :amount="masterAmount" />
+  <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master" description="100k to 50k"
+    :amount="masterAmount" />
 
   <!-- 49.999 to 10.000 -->
-  <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond"
-    description="50k to 10k" :amount="diamondAmount" />
+  <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond" description="50k to 10k"
+    :amount="diamondAmount" />
 
   <!-- 9.999 to 5.000 -->
-  <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum"
-    description="10k to 5k" :amount="platinumAmount" />
+  <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum" description="10k to 5k"
+    :amount="platinumAmount" />
 
   <!-- 4.999 to 1.000 -->
-  <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold"
-    description="5k to 1k" :amount="goldAmount" />
+  <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold" description="5k to 1k" :amount="goldAmount" />
 
   <!-- 999 to 500 -->
-  <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver"
-    description="1k to 500" :amount="silverAmount" />
+  <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver" description="1k to 500"
+    :amount="silverAmount" />
 
   <!-- 499 to 100 -->
-  <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze"
-    description="500 to 100" :amount="bronzeAmount" />
+  <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze" description="500 to 100"
+    :amount="bronzeAmount" />
 
   <!-- 99 and below -->
-  <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron"
-    description="Below 100" :amount="ironAmount" />
+  <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron" description="Below 100" :amount="ironAmount" />
 </template>
 
 <script lang="ts">
@@ -90,7 +92,9 @@ export default class App extends Vue {
 
   public all: LolDataObject[] = [];
   public amount: number = 150;
+  public thresholds: any = {};
   public tieredData: TieredLolDataObjects = {
+    challenger: [],
     grandmaster: [],
     master: [],
     diamond: [],
@@ -99,7 +103,7 @@ export default class App extends Vue {
     silver: [],
     bronze: [],
     iron: []
-};
+  };
 
   mounted() {
     this.summonerName = "shimomeikato";
@@ -109,6 +113,12 @@ export default class App extends Vue {
   public async getData() {
     this.isLoading = true;
     this.resetData();
+
+    await axios.get(`${this.baseUrl}/challenge`).then(res => {
+      console.log(res.data.thresholds);
+      this.thresholds = res.data.thresholds;
+    });
+
     await axios.get(`${this.baseUrl}/champion-mastery/euw1/${this.summonerName}`).then(res => {
       if (res) {
         this.isLoading = false;
@@ -134,13 +144,17 @@ export default class App extends Vue {
     return `${this.imageUrl}/${name}.png`
   }
 
-  public getLocaleNumberString(value: number) {    
+  public getLocaleNumberString(value: number) {
     // @ts-ignore
     return value.toLocaleString(this.locale)
   }
 
+  public get grandmasterAmount(): number {
+    return this.tieredData.challenger.length + this.tieredData.grandmaster.length;
+  }
+
   public get masterAmount(): number {
-    return this.tieredData.grandmaster.length + this.tieredData.master.length;
+    return this.grandmasterAmount + this.tieredData.master.length;
   }
 
   public get diamondAmount(): number {
@@ -168,7 +182,8 @@ export default class App extends Vue {
   }
 
   public resetData() {
-      this.tieredData = {
+    this.tieredData = {
+      challenger: [],
       grandmaster: [],
       master: [],
       diamond: [],
@@ -181,20 +196,24 @@ export default class App extends Vue {
   }
 
   public setTierData(data: LolDataObject[]) {
+    console.log(this.thresholds);
+
     data.forEach(champ => {
-      if (champ.masteryPoints >= 100000) {
+      if (champ.masteryPoints >= this.thresholds.CHALLENGER) {
+        this.tieredData.challenger.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.GRANDMASTER) {
         this.tieredData.grandmaster.push(champ);
-      } else if (champ.masteryPoints >= 50000) {
+      } else if (champ.masteryPoints >= this.thresholds.MASTER) {
         this.tieredData.master.push(champ);
-      } else if (champ.masteryPoints >= 10000) {
+      } else if (champ.masteryPoints >= this.thresholds.DIAMOND) {
         this.tieredData.diamond.push(champ);
-      } else if (champ.masteryPoints >= 5000) {
+      } else if (champ.masteryPoints >= this.thresholds.PLATINUM) {
         this.tieredData.platinum.push(champ);
-      } else if (champ.masteryPoints >= 1000) {
+      } else if (champ.masteryPoints >= this.thresholds.GOLD) {
         this.tieredData.gold.push(champ);
-      } else if (champ.masteryPoints >= 500) {
+      } else if (champ.masteryPoints >= this.thresholds.SILVER) {
         this.tieredData.silver.push(champ);
-      } else if (champ.masteryPoints >= 100) {
+      } else if (champ.masteryPoints >= this.thresholds.BRONZE) {
         this.tieredData.bronze.push(champ);
       } else {
         this.tieredData.iron.push(champ);
@@ -204,20 +223,24 @@ export default class App extends Vue {
 
   public getNextMilestone(value: number) {
     switch (true) {
-      case (value < 100):
-        return 100;
-      case (value < 500):
-        return 500;
-      case (value < 1000):
-        return this.getLocaleNumberString(1000);
-      case (value < 5000):
-        return this.getLocaleNumberString(5000);
-      case (value < 10000):
-        return this.getLocaleNumberString(10000);
-      case (value < 50000):
-        return this.getLocaleNumberString(50000);
-      case (value < 100000):
-        return this.getLocaleNumberString(100000);
+      case (value < this.thresholds.IRON):
+        return this.thresholds.IRON;
+      case (value < this.thresholds.BRONZE):
+        return this.thresholds.BRONZE;
+      case (value < this.thresholds.SILVER):
+        return this.getLocaleNumberString(this.thresholds.SILVER);
+      case (value < this.thresholds.GOLD):
+        return this.getLocaleNumberString(this.thresholds.GOLD);
+      case (value < this.thresholds.PLATINUM):
+        return this.getLocaleNumberString(this.thresholds.PLATINUM);
+      case (value < this.thresholds.DIAMOND):
+        return this.getLocaleNumberString(this.thresholds.DIAMOND);
+      case (value < this.thresholds.MASTER):
+        return this.getLocaleNumberString(this.thresholds.MASTER);
+      case (value < this.thresholds.GRANDMASTER):
+        return this.getLocaleNumberString(this.thresholds.GRANDMASTER);
+      case (value < this.thresholds.CHALLENGER):
+        return this.getLocaleNumberString(this.thresholds.CHALLENGER);
       default:
         return 0;
     }
@@ -240,10 +263,7 @@ header {
 
 .aram-content {
   display: flex;
-}
-
-.champion {
-  display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 </style>
