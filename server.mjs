@@ -30,6 +30,28 @@ app.get('/champion-mastery/:region/:summoner', async function (req, res) {
     }
 });
 
+app.get('/challenge/:region', async function(req, res) {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept'
+    );
+    const region = req.params.region;
+    const apiUrl = `https://${region}.api.riotgames.com/lol`
+    try {
+        axios.defaults.headers.common['X-Riot-Token'] = API_KEY;
+        const challengeInfo = await axios.get(`${apiUrl}/challenges/v1/challenges/401101/config`);
+        res.send({
+            name: challengeInfo.data.localizedNames.en_GB.name,
+            description: challengeInfo.data.localizedNames.en_GB.descripton,
+            shortDescription: challengeInfo.data.localizedNames.en_GB.shortDescription,
+            thresholds: challengeInfo.data.thresholds
+        });
+    } catch (e) {
+        res.status(e.response.status).send(e.response.data.status); 
+    }
+});
+
 async function getChampionData(mastery) {
     const response = await axios.get('https://ddragon.leagueoflegends.com/cdn/12.23.1/data/en_US/champion.json');
     const data = response.data.data;
