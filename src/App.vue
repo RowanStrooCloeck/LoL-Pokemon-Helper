@@ -11,14 +11,19 @@
   </div>
 
   <div>
-    <VueMultiselect v-model="multiValue" :options="all" :multiple="true" :close-on-select="false"
-      placeholder="Pick some" label="name" track-by="name" />
+    <Multiselect v-model="multiValue" :options="all" :multiple="true" :close-on-select="false" placeholder="Pick some"
+      label="name" track-by="name">
+      <template v-slot:clear>
+        <div class="multiselect__clear" v-if="multiValue.length"
+          @mousedown.prevent.stop="clearAll()">❌</div>
+      </template>
+    </Multiselect>
   </div>
 
   <div class="aram-content">
     <template v-for="selection in multiValue">
       <div :id="selection.name" class="champion">
-        <img :src="getLoadingIcon(selection.name)" :alt="selection.name" />
+        <img :src="getLoadingIcon(selection.key)" :alt="selection.key" />
         <h2>{{ selection.name }}</h2>
         <div class="mastery-points">
           <h4>Mastery Points</h4>
@@ -70,7 +75,7 @@
 <script lang="ts">
 import axios from "axios";
 import { Vue, Options } from "vue-class-component";
-import VueMultiselect from "vue-multiselect";
+import Multiselect from "vue-multiselect";
 import type { LolDataObject } from "./assets/LolDataObject";
 import type { TieredLolDataObjects } from "./assets/TieredLolDataObjects";
 import { TierIconUrl } from "./assets/TierIconUrl";
@@ -79,7 +84,7 @@ import TierList from "./components/TierList.vue";
 @Options({
   components: {
     TierList,
-    VueMultiselect
+    Multiselect,
   }
 })
 
@@ -132,7 +137,7 @@ export default class App extends Vue {
     });
   }
 
-  public clearSearch() {
+  public clearAll() {
     this.multiValue = [];
   }
 

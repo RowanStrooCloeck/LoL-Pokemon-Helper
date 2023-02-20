@@ -37,7 +37,23 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
+}
+
+.multiselect__select {
+  z-index: 2;
+}
+
+.multiselect__clear {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  right: 34px;
+  padding: 6px 8px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 2;
 }
