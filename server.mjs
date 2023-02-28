@@ -66,13 +66,16 @@ async function getChampionData(mastery) {
                     id: id,
                     key: key,
                     name: name,
-                    masteryPoints: masteryData.championPoints
+                    masteryPoints: masteryData.championPoints,
+                    masteryLevel: masteryData.championLevel
                 }
             } else {
                 obj = {
-                    name: name,
                     id: id,
-                    masteryPoints: 0
+                    key: key,
+                    name: name,
+                    masteryPoints: 0,
+                    masteryLevel: 0
                 }
             }
             returnData.push(obj);

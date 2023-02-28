@@ -10,4 +10,5 @@ export interface TieredLolDataObjects {
     silver: LolDataObject[],
     bronze: LolDataObject[],
     iron: LolDataObject[],
+    unranked: LolDataObject[],
 }

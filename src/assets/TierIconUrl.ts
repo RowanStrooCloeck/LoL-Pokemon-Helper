@@ -1,4 +1,5 @@
 export enum TierIconUrl {
+    Unranked = "https://static.wikia.nocookie.net/leagueoflegends/images/3/38/Season_2019_-_Unranked.png",
     Iron = "https://static.wikia.nocookie.net/leagueoflegends/images//0/03/Season_2019_-_Iron_1.png",
     Bronze = "https://static.wikia.nocookie.net/leagueoflegends/images//f/f4/Season_2019_-_Bronze_1.png",
     Silver = "https://static.wikia.nocookie.net/leagueoflegends/images//7/70/Season_2019_-_Silver_1.png",
