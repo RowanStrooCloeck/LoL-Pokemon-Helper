@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "vite",
+    "main": "src/main.ts",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "build-only": "vite build",
