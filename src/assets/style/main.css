@@ -1,5 +1,5 @@
 @import './base.css';
-@import '../../node_modules/vue-multiselect/dist/vue3-multiselect.css';
+@import '../../../node_modules/vue-multiselect/dist/vue3-multiselect.css';
 
 #app {
   max-width: 1280px;
@@ -9,18 +9,9 @@
   font-weight: normal;
 }
 
-/*a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+.region-selector .multiselect__input {
+  font-size: 0.8rem;
 }
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}*/
 
 .loader {
   width: 48px;

@@ -10,9 +10,9 @@
 
 
 <script lang="ts">
-import type { LolDataObject } from "@/assets/LolDataObject";
+import type { LolDataObject } from "@/assets/objects/LolDataObject";
 import {Vue, Options, prop} from "vue-class-component";
-import {MasteryTierIconUrl} from "@/assets/MasteryTierIconUrl";
+import {MasteryTierIconUrl} from "@/assets/objects/MasteryTierIconUrl";
 
 class Props {
     champion: LolDataObject = prop({

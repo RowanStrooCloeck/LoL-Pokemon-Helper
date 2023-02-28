@@ -19,7 +19,7 @@
 
 
 <script lang="ts">
-import type { LolDataObject } from "@/assets/LolDataObject";
+import type { LolDataObject } from "@/assets/objects/LolDataObject";
 import {Vue, Options, prop} from "vue-class-component";
 import ChampionItem from "./ChampionItem.vue";
 

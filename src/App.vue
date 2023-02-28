@@ -1,16 +1,17 @@
 <template>
   <div class="header">
+    <Multiselect v-model="selectedRegion" placeholder="Region" :options="regions" :multiple="false"
+      :close-on-select="true" select-label="" deselect-label="" selected-label="" :allow-empty="false" label="abbr"
+      track-by="code" @select="getData" class="region-selector">
+    </Multiselect>
+
     <input placeholder="Summoner Name" v-model="summonerName" @change="getData" />
-    <div v-if="isLoading">
-      <span class="loader"></span>
-    </div>
-
-    <div v-else-if="!isLoading">
-      Not loading
-    </div>
   </div>
-
-  <div>
+  <div v-if="isLoading">
+    <span class="loader"></span>
+  </div>
+  <div class="random-searcher" v-if="!isLoading">
+    <h1>All Random Searcher</h1>
     <Multiselect v-model="multiValue" :options="all" :multiple="true" :close-on-select="false" placeholder="Pick some"
       label="name" track-by="name">
       <template v-slot:clear>
@@ -19,7 +20,7 @@
     </Multiselect>
   </div>
 
-  <div class="aram-content">
+  <div class="aram-content" v-if="!isLoading">
     <template v-for="selection in multiValue">
       <div :id="selection.name" class="champion">
         <img :src="getLoadingIcon(selection.key)" :alt="selection.key" class="aram-icon" />
@@ -36,7 +37,7 @@
     </template>
   </div>
 
-  <div>
+  <div v-if="!isLoading">
     <h1>Overall progress</h1>
     <!-- 115k+ -->
     <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger"
@@ -83,10 +84,11 @@
 import axios from "axios";
 import { Vue, Options } from "vue-class-component";
 import Multiselect from "vue-multiselect";
-import type { LolDataObject } from "./assets/LolDataObject";
-import type { TieredLolDataObjects } from "./assets/TieredLolDataObjects";
-import { TierIconUrl } from "./assets/TierIconUrl";
+import type { LolDataObject } from "./assets/objects/LolDataObject";
+import type { TieredLolDataObjects } from "./assets/objects/TieredLolDataObjects";
+import { TierIconUrl } from "./assets/objects/TierIconUrl";
 import TierList from "./components/TierList.vue";
+import regionsJson from '@/assets/regions.json';
 
 @Options({
   components: {
@@ -101,6 +103,8 @@ export default class App extends Vue {
   public summonerName: string = '';
   public isLoading: boolean = false;
   public multiValue: LolDataObject[] = [];
+  public selectedRegion = {};
+  public regions = [{}];
 
   public all: LolDataObject[] = [];
   public amount: number = 150;
@@ -119,7 +123,9 @@ export default class App extends Vue {
   };
 
   mounted() {
-    this.summonerName = "shimomeikato";
+    this.summonerName = "Shimomeikato";
+    this.regions = regionsJson;
+    this.selectedRegion = this.regions[2];
     this.getData();
   }
 
@@ -131,7 +137,8 @@ export default class App extends Vue {
       this.thresholds = res.data.thresholds;
     });
 
-    await axios.get(`${this.baseUrl}/champion-mastery/euw1/${this.summonerName}`).then(res => {
+    // @ts-ignore
+    await axios.get(`${this.baseUrl}/champion-mastery/${this.selectedRegion.code}/${this.summonerName}`).then(res => {
       if (res) {
         this.isLoading = false;
         this.all = res.data.slice();
@@ -270,8 +277,13 @@ export default class App extends Vue {
 </script>
 
 <style scoped>
-header {
+.header {
   line-height: 1.5;
+  display: flex;
+}
+
+.region-selector {
+  width: 6rem;
 }
 
 @media (min-width: 1024px) {
@@ -280,6 +292,10 @@ header {
     place-items: center;
     padding-right: calc(var(--section-gap) / 2);
   }
+}
+
+.random-searcher {
+  padding-top: 1rem;
 }
 
 .aram-content {

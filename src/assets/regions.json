@@ -1,0 +1,65 @@
+[{
+	"code": "BR1",
+	"name": "Brazil",
+	"abbr": "BR"
+},{
+	"code": "EUN1",
+	"name": "Europe Nordic & East",
+	"abbr": "EUNE"
+},{
+	"code": "EUW1",
+	"name": "Europe West",
+	"abbr": "EUW"
+},{
+	"code": "JP1",
+	"name": "Japan",
+	"abbr": "JP"
+},{
+	"code": "KR",
+	"name": "Korea",
+	"abbr": "KR"
+},{
+	"code": "LA1",
+	"name": "Latin America North",
+	"abbr": "LAN"
+},{
+	"code": "LA2",
+	"name": "Latin America South",
+	"abbr": "LAS"
+},{
+	"code": "NA1",
+	"name": "North America",
+	"abbr": "NA"
+},{
+	"code": "OC1",
+	"name": "Oceania",
+	"abbr": "OCE"
+},{
+	"code": "PH2",
+	"name": "Phillippines",
+	"abbr": "PH"
+},{
+	"code": "RU",
+	"name": "Russia",
+	"abbr": "RU"
+},{
+	"code": "SG2",
+	"name": "Singapore",
+	"abbr": "SG"
+},{
+	"code": "TH2",
+	"name": "Thailand",
+	"abbr": "TH"
+},{
+	"code": "TR1",
+	"name": "Turkey",
+	"abbr": "TR"
+},{
+	"code": "TW2",
+	"name": "Taiwan",
+	"abbr": "TW"
+},{
+	"code": "VN2",
+	"name": "Vietnam",
+	"abbr": "VN"
+}]
