@@ -30,14 +30,13 @@ app.get('/champion-mastery/:region/:summoner', async function (req, res) {
     }
 });
 
-app.get('/challenge/:region', async function(req, res) {
+app.get('/challenge', async function(req, res) {
     res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
     res.header(
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept'
     );
-    const region = req.params.region;
-    const apiUrl = `https://${region}.api.riotgames.com/lol`
+    const apiUrl = `https://euw1.api.riotgames.com/lol`
     try {
         axios.defaults.headers.common['X-Riot-Token'] = API_KEY;
         const challengeInfo = await axios.get(`${apiUrl}/challenges/v1/challenges/401101/config`);
@@ -53,7 +52,7 @@ app.get('/challenge/:region', async function(req, res) {
 });
 
 async function getChampionData(mastery) {
-    const response = await axios.get('https://ddragon.leagueoflegends.com/cdn/12.23.1/data/en_US/champion.json');
+    const response = await axios.get('http://ddragon.leagueoflegends.com/cdn/12.23.1/data/en_US/champion.json');
     const data = response.data.data;
     const returnData = [];
     for (const key in data) {
@@ -67,13 +66,16 @@ async function getChampionData(mastery) {
                     id: id,
                     key: key,
                     name: name,
-                    masteryPoints: masteryData.championPoints
+                    masteryPoints: masteryData.championPoints,
+                    masteryLevel: masteryData.championLevel
                 }
             } else {
                 obj = {
-                    name: name,
                     id: id,
-                    masteryPoints: 0
+                    key: key,
+                    name: name,
+                    masteryPoints: 0,
+                    masteryLevel: 0
                 }
             }
             returnData.push(obj);

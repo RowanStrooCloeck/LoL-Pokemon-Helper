@@ -1,19 +1,29 @@
 <template>
   <div class="header">
-    <input placeholder="Summoner Name" v-model="summonerName" @change="getData" />
-    <div v-if="isLoading">
-      <span class="loader"></span>
-    </div>
+    <Multiselect v-model="selectedRegion" placeholder="Region" :options="regions" :multiple="false"
+      :close-on-select="true" select-label="" deselect-label="" selected-label="" :allow-empty="false" label="abbr"
+      track-by="code" @select="getData" class="region-selector">
+    </Multiselect>
 
-    <div v-else-if="!isLoading">
-      Not loading
-    </div>
+    <input placeholder="Summoner Name" v-model="summonerName" @change="getData" />
+  </div>
+  <div v-if="isLoading">
+    <span class="loader"></span>
+  </div>
+  <div class="random-searcher" v-if="!isLoading">
+    <h1>All Random Searcher</h1>
+    <Multiselect v-model="multiValue" :options="all" :multiple="true" :close-on-select="false" placeholder="Pick some"
+      label="name" track-by="name">
+      <template v-slot:clear>
+        <div class="multiselect__clear" v-if="multiValue.length" @mousedown.prevent.stop="clearAll()">❌</div>
+      </template>
+    </Multiselect>
   </div>
 
-  <div class="aram-content">
+  <div class="aram-content" v-if="!isLoading">
     <template v-for="selection in multiValue">
       <div :id="selection.name" class="champion">
-        <img :src="getLoadingIcon(selection.name)" :alt="selection.name" />
+        <img :src="getLoadingIcon(selection.key)" :alt="selection.key" class="aram-icon" />
         <h2>{{ selection.name }}</h2>
         <div class="mastery-points">
           <h4>Mastery Points</h4>
@@ -26,70 +36,239 @@
       </div>
     </template>
   </div>
+
+  <div v-if="!isLoading">
+    <h1>Overall progress</h1>
+    <!-- 115k+ -->
+    <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger"
+      :description="getLocaleNumberString(thresholds.CHALLENGER) + '+'" :amount="tieredData.challenger.length" />
+
+    <!-- 107.5k - 115k -->
+    <TierList :tierIcon="getTierIconUrl('GrandMaster')" :data="tieredData.grandmaster"
+      :description="`${getLocaleNumberString(thresholds.GRANDMASTER)}+`" :amount="tieredData.grandmaster.length" />
+
+    <!-- 100k - 107.5k -->
+    <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master"
+      :description="`${getLocaleNumberString(thresholds.MASTER)}+`" :amount="masterAmount" />
+
+    <!-- 50k - 100k -->
+    <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond"
+      :description="`${getLocaleNumberString(thresholds.DIAMOND)}+`" :amount="diamondAmount" />
+
+    <!-- 10k - 50k -->
+    <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum"
+      :description="`${getLocaleNumberString(thresholds.PLATINUM)}+`" :amount="platinumAmount" />
+
+    <!-- 5k - 10k -->
+    <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold"
+      :description="`${getLocaleNumberString(thresholds.GOLD)}+`" :amount="goldAmount" />
+
+    <!-- 999 to 500 -->
+    <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver"
+      :description="`${getLocaleNumberString(thresholds.SILVER)}+`" :amount="silverAmount" />
+
+    <!-- 499 to 100 -->
+    <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze"
+      :description="`${getLocaleNumberString(thresholds.BRONZE)}+`" :amount="bronzeAmount" />
+
+    <!-- 99 and below -->
+    <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron"
+      :description="`${getLocaleNumberString(thresholds.IRON)}+`" :amount="ironAmount" />
+
+    <!-- 99 and below -->
+    <TierList :data="tieredData.unranked" />
+  </div>
 </template>
 
 <script lang="ts">
 import axios from "axios";
 import { Vue, Options } from "vue-class-component";
+import Multiselect from "vue-multiselect";
+import type { LolDataObject } from "./assets/objects/LolDataObject";
+import type { TieredLolDataObjects } from "./assets/objects/TieredLolDataObjects";
+import { TierIconUrl } from "./assets/objects/TierIconUrl";
+import TierList from "./components/TierList.vue";
+import regionsJson from '@/assets/regions.json';
 
 @Options({
-  components: {}
+  components: {
+    TierList,
+    Multiselect,
+  }
 })
 
 export default class App extends Vue {
-  private baseUrl: string = 'http://localhost:3000';
-  private imageUrl: string = 'http://ddragon.leagueoflegends.com/cdn/13.3.1/img/champion';
-  private summonerName: string = '';
-  private isLoading: boolean = false;
-  public multiValue = [{
-    name: "Bard",
-    masteryPoints: 67876
-  }, {
-    name: "Fizz",
-    masteryPoints: 63876
-  }, {
-    name: "Irelia",
-    masteryPoints: 4979
-  }]
+  private baseUrl: string = import.meta.env.VITE_BASE_URL;
+  private imageUrl: string = import.meta.env.VITE_IMAGE_URL;
+  public summonerName: string = '';
+  public isLoading: boolean = false;
+  public multiValue: LolDataObject[] = [];
+  public selectedRegion = {};
+  public regions = [{}];
 
-  private async getData() {
+  public all: LolDataObject[] = [];
+  public amount: number = 150;
+  public thresholds: any = {};
+  public tieredData: TieredLolDataObjects = {
+    challenger: [],
+    grandmaster: [],
+    master: [],
+    diamond: [],
+    platinum: [],
+    gold: [],
+    silver: [],
+    bronze: [],
+    iron: [],
+    unranked: [],
+  };
+
+  mounted() {
+    this.summonerName = "Shimomeikato";
+    this.regions = regionsJson;
+    this.selectedRegion = this.regions[2];
+    this.getData();
+  }
+
+  public async getData() {
     this.isLoading = true;
-    await axios.get(`${this.baseUrl}/champion-mastery/euw1/${this.summonerName}`).then(res => {
+    this.resetData();
+
+    await axios.get(`${this.baseUrl}/challenge`).then(res => {
+      this.thresholds = res.data.thresholds;
+    });
+
+    // @ts-ignore
+    await axios.get(`${this.baseUrl}/champion-mastery/${this.selectedRegion.code}/${this.summonerName}`).then(res => {
       if (res) {
         this.isLoading = false;
-        console.log(res.data);
-        // show data on screen
+        this.all = res.data.slice();
+        res.data.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
+        this.setTierData(res.data);
       }
     }).catch(err => {
+      this.isLoading = false;
       // show error on screen
     });
+  }
+
+  public clearAll() {
+    this.multiValue = [];
+  }
+
+  public getTierIconUrl(tier: string) {
+    return (<any>TierIconUrl)[tier];
   }
 
   public getLoadingIcon(name: string) {
     return `${this.imageUrl}/${name}.png`
   }
 
-  public getLocaleNumberString(value: number) {    
-    // @ts-ignore
-    return value.toLocaleString(this.locale)
+  public getLocaleNumberString(value: number) {
+    if (value) {
+      // @ts-ignore
+      return value.toLocaleString(this.locale);
+    }
+    return 0;
+  }
+
+  public get grandmasterAmount(): number {
+    return this.tieredData.challenger.length + this.tieredData.grandmaster.length;
+  }
+
+  public get masterAmount(): number {
+    return this.grandmasterAmount + this.tieredData.master.length;
+  }
+
+  public get diamondAmount(): number {
+    return this.masterAmount + this.tieredData.diamond.length;
+  }
+
+  public get platinumAmount(): number {
+    return this.diamondAmount + this.tieredData.platinum.length;
+  }
+
+  public get goldAmount(): number {
+    return this.platinumAmount + this.tieredData.gold.length;
+  }
+
+  public get silverAmount(): number {
+    return this.goldAmount + this.tieredData.silver.length;
+  }
+
+  public get bronzeAmount(): number {
+    return this.silverAmount + this.tieredData.bronze.length;
+  }
+
+  public get ironAmount(): number {
+    return this.bronzeAmount + this.tieredData.iron.length;
+  }
+
+  public get unrankedAmount(): number {
+    return this.ironAmount + this.tieredData.unranked.length;
+  }
+
+  public resetData() {
+    this.tieredData = {
+      challenger: [],
+      grandmaster: [],
+      master: [],
+      diamond: [],
+      platinum: [],
+      gold: [],
+      silver: [],
+      bronze: [],
+      iron: [],
+      unranked: [],
+    };
+  }
+
+  public setTierData(data: LolDataObject[]) {
+
+    data.forEach(champ => {
+      if (champ.masteryPoints >= this.thresholds.CHALLENGER) {
+        this.tieredData.challenger.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.GRANDMASTER) {
+        this.tieredData.grandmaster.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.MASTER) {
+        this.tieredData.master.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.DIAMOND) {
+        this.tieredData.diamond.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.PLATINUM) {
+        this.tieredData.platinum.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.GOLD) {
+        this.tieredData.gold.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.SILVER) {
+        this.tieredData.silver.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.BRONZE) {
+        this.tieredData.bronze.push(champ);
+      } else if (champ.masteryPoints >= this.thresholds.IRON) {
+        this.tieredData.iron.push(champ);
+      } else {
+        this.tieredData.unranked.push(champ);
+      }
+    });
   }
 
   public getNextMilestone(value: number) {
     switch (true) {
-      case (value < 100):
-        return 100;
-      case (value < 500):
-        return 500;
-      case (value < 1000):
-        return this.getLocaleNumberString(1000);
-      case (value < 5000):
-        return this.getLocaleNumberString(5000);
-      case (value < 10000):
-        return this.getLocaleNumberString(10000);
-      case (value < 50000):
-        return this.getLocaleNumberString(50000);
-      case (value < 100000):
-        return this.getLocaleNumberString(100000);
+      case (value < this.thresholds.IRON):
+        return this.thresholds.IRON;
+      case (value < this.thresholds.BRONZE):
+        return this.thresholds.BRONZE;
+      case (value < this.thresholds.SILVER):
+        return this.getLocaleNumberString(this.thresholds.SILVER);
+      case (value < this.thresholds.GOLD):
+        return this.getLocaleNumberString(this.thresholds.GOLD);
+      case (value < this.thresholds.PLATINUM):
+        return this.getLocaleNumberString(this.thresholds.PLATINUM);
+      case (value < this.thresholds.DIAMOND):
+        return this.getLocaleNumberString(this.thresholds.DIAMOND);
+      case (value < this.thresholds.MASTER):
+        return this.getLocaleNumberString(this.thresholds.MASTER);
+      case (value < this.thresholds.GRANDMASTER):
+        return this.getLocaleNumberString(this.thresholds.GRANDMASTER);
+      case (value < this.thresholds.CHALLENGER):
+        return this.getLocaleNumberString(this.thresholds.CHALLENGER);
       default:
         return 0;
     }
@@ -98,12 +277,35 @@ export default class App extends Vue {
 </script>
 
 <style scoped>
-.aram-content {
+.header {
+  line-height: 1.5;
   display: flex;
 }
 
-.champion {
+.region-selector {
+  width: 6rem;
+}
+
+@media (min-width: 1024px) {
+  header {
+    display: flex;
+    place-items: center;
+    padding-right: calc(var(--section-gap) / 2);
+  }
+}
+
+.random-searcher {
+  padding-top: 1rem;
+}
+
+.aram-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 1rem 0 5rem 0;
+}
+
+.aram-icon {
+  padding-right: 1rem;
 }
 </style>

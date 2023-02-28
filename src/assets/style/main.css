@@ -1,4 +1,5 @@
 @import './base.css';
+@import '../../../node_modules/vue-multiselect/dist/vue3-multiselect.css';
 
 #app {
   max-width: 1280px;
@@ -8,18 +9,9 @@
   font-weight: normal;
 }
 
-/*a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+.region-selector .multiselect__input {
+  font-size: 0.8rem;
 }
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}*/
 
 .loader {
   width: 48px;
@@ -36,7 +28,23 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
+}
+
+.multiselect__select {
+  z-index: 2;
+}
+
+.multiselect__clear {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  right: 34px;
+  padding: 6px 8px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 2;
 }
