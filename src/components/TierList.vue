@@ -59,11 +59,24 @@ h3{
     padding-right: 1rem;
 }
 .tier {
-    background-color: #202020;
+    
     display:flex;
     justify-content: space-between;
     margin-bottom: 0.5rem;
 }
+
+@media (prefers-color-scheme: dark) {
+    .tier {
+        background-color: #202020;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    .tier {
+        background-color:aliceblue;
+    }
+}
+
 .tier-icon {
     max-height: 6rem;
     padding-left: 1rem;
