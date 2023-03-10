@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.mjs",
     "dev": "vite",
     "main": "src/main.ts",
     "build": "run-p type-check build-only",
