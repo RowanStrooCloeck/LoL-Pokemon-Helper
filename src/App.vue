@@ -5,13 +5,23 @@
       track-by="code" @select="getData" class="region-selector">
     </Multiselect>
 
-    <input placeholder="Summoner Name" v-model="summonerName" @change="getData" />
+    <q-input class="summoner-input" placeholder="Summoner Name" v-model="summonerName" @change="getData" :dark="darkMode"
+      filled />
+
+    <div class="progress" @click="scrollToCurrentTier(progressTier)">
+      <img :src="getTierIconUrl(progressTier)" alt="progress-icon" class="progress-icon">
+      <div class="challenge-explanation">
+        <h6>{{ challengeTitle }}</h6>
+        <p>{{ challengeDescription }}</p>
+        <p>{{ progressAmount }} / 150</p>
+      </div>
+    </div>
   </div>
   <div v-if="isLoading">
     <span class="loader"></span>
   </div>
   <div class="random-searcher" v-if="!isLoading">
-    <h1>All Random Searcher</h1>
+    <h3>All Random Searcher</h3>
     <Multiselect v-model="multiValue" :options="all" :multiple="true" :close-on-select="false" placeholder="Pick some"
       label="name" track-by="name">
       <template v-slot:clear>
@@ -24,13 +34,13 @@
     <template v-for="selection in multiValue">
       <div :id="selection.name" class="champion">
         <img :src="getLoadingIcon(selection.key)" :alt="selection.key" class="aram-icon" />
-        <h2>{{ selection.name }}</h2>
+        <h5>{{ selection.name }}</h5>
         <div class="mastery-points">
-          <h4>Mastery Points</h4>
+          <p>Mastery Points</p>
           <p>{{ getLocaleNumberString(selection.masteryPoints) }}</p>
         </div>
         <div class="next-milestone">
-          <h4>Next Milestone</h4>
+          <p>Next Milestone</p>
           <p>{{ getNextMilestone(selection.masteryPoints) }}</p>
         </div>
       </div>
@@ -38,45 +48,45 @@
   </div>
 
   <div v-if="!isLoading">
-    <h1>Overall progress</h1>
+    <h3>Overall progress</h3>
     <!-- 115k+ -->
-    <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger"
+    <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger" id="challenger"
       :description="getLocaleNumberString(thresholds.CHALLENGER) + '+'" :amount="tieredData.challenger.length" />
 
     <!-- 107.5k - 115k -->
-    <TierList :tierIcon="getTierIconUrl('GrandMaster')" :data="tieredData.grandmaster"
-      :description="`${getLocaleNumberString(thresholds.GRANDMASTER)}+`" :amount="tieredData.grandmaster.length" />
+    <TierList :tierIcon="getTierIconUrl('GrandMaster')" :data="tieredData.grandmaster" id="grandmaster"
+      :description="`${getLocaleNumberString(thresholds.GRANDMASTER)}+`" :amount="grandmasterAmount" />
 
     <!-- 100k - 107.5k -->
-    <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master"
+    <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master" id="Master"
       :description="`${getLocaleNumberString(thresholds.MASTER)}+`" :amount="masterAmount" />
 
     <!-- 50k - 100k -->
-    <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond"
+    <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond" id="Diamond"
       :description="`${getLocaleNumberString(thresholds.DIAMOND)}+`" :amount="diamondAmount" />
 
     <!-- 10k - 50k -->
-    <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum"
+    <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum" id="Platinum"
       :description="`${getLocaleNumberString(thresholds.PLATINUM)}+`" :amount="platinumAmount" />
 
     <!-- 5k - 10k -->
-    <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold"
+    <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold" id="Gold"
       :description="`${getLocaleNumberString(thresholds.GOLD)}+`" :amount="goldAmount" />
 
     <!-- 999 to 500 -->
-    <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver"
+    <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver" id="Silver"
       :description="`${getLocaleNumberString(thresholds.SILVER)}+`" :amount="silverAmount" />
 
     <!-- 499 to 100 -->
-    <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze"
+    <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze" id="Bronze"
       :description="`${getLocaleNumberString(thresholds.BRONZE)}+`" :amount="bronzeAmount" />
 
     <!-- 99 and below -->
-    <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron"
+    <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron" id="Iron"
       :description="`${getLocaleNumberString(thresholds.IRON)}+`" :amount="ironAmount" />
 
     <!-- 99 and below -->
-    <TierList :data="tieredData.unranked" />
+    <TierList :data="tieredData.unranked" id="Unrankded" />
   </div>
 </template>
 
@@ -102,6 +112,8 @@ export default class App extends Vue {
   private imageUrl: string = import.meta.env.VITE_IMAGE_URL;
   public summonerName: string = '';
   public isLoading: boolean = false;
+  public challengeTitle: string = '';
+  public challengeDescription: string = '';
   public multiValue: LolDataObject[] = [];
   public selectedRegion = {};
   public regions = [{}];
@@ -134,6 +146,8 @@ export default class App extends Vue {
     this.resetData();
 
     await axios.get(`${this.baseUrl}/challenge`).then(res => {
+      this.challengeTitle = res.data.name;
+      this.challengeDescription = res.data.shortDescription;
       this.thresholds = res.data.thresholds;
     });
 
@@ -169,6 +183,17 @@ export default class App extends Vue {
       return value.toLocaleString(this.locale);
     }
     return 0;
+  }
+
+  public get darkMode() {
+    const hasDarkPreference = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    if (hasDarkPreference) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public get grandmasterAmount(): number {
@@ -223,7 +248,8 @@ export default class App extends Vue {
   }
 
   public setTierData(data: LolDataObject[]) {
-
+    const test = data[149];
+    console.log(test);
     data.forEach(champ => {
       if (champ.masteryPoints >= this.thresholds.CHALLENGER) {
         this.tieredData.challenger.push(champ);
@@ -273,6 +299,49 @@ export default class App extends Vue {
         return 0;
     }
   }
+
+  public get progressAmount() {
+    let total = 0;
+
+    for (const key in this.tieredData) {
+      if (Object.prototype.hasOwnProperty.call(this.tieredData, key)) {
+        //@ts-ignore
+        const amount = this.tieredData[key].length;
+        if (total + amount >= 150) {
+          return total;
+        }
+        total += amount;
+      }
+    }
+    return 0;
+  }
+
+  public get progressTier() {
+    let tier = '';
+    let total = 0;
+    for (const key in this.tieredData) {
+      if (Object.prototype.hasOwnProperty.call(this.tieredData, key)) {
+        //@ts-ignore
+        const amount = this.tieredData[key].length;
+        if (total + amount >= 150) {
+          break;
+        }
+        total += amount;
+        tier = key;
+
+      }
+    }
+    tier = (tier === 'grandmaster') ? 'GrandMaster' : tier;
+    return tier.charAt(0).toUpperCase() + tier.slice(1);
+  }
+
+  public scrollToCurrentTier(id: string) {
+    window.scrollTo({
+      top: document.getElementById(id)?.offsetTop,
+      left: 0,
+      behavior: "smooth",
+    })
+  }
 }
 </script>
 
@@ -280,10 +349,39 @@ export default class App extends Vue {
 .header {
   line-height: 1.5;
   display: flex;
+  height: 6rem;
+}
+
+.summoner-input,
+.summoner-input input {
+  margin: auto 0;
+  height: 40px;
 }
 
 .region-selector {
+  margin: auto 0;
   width: 6rem;
+}
+
+.progress {
+  margin-left: auto;
+  display: flex;
+}
+
+.progress:hover {
+  cursor: pointer;
+}
+
+
+.progress-icon {
+  max-height: 6rem;
+  padding-right: 1rem;
+}
+
+.challenge-explanation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 @media (min-width: 1024px) {
@@ -305,7 +403,14 @@ export default class App extends Vue {
   padding: 1rem 0 5rem 0;
 }
 
-.aram-icon {
+.champion {
   padding-right: 1rem;
 }
+
+.aram-icon {
+  width: 100%;
+}
+</style>
+
+<style>
 </style>
