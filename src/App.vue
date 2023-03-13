@@ -88,6 +88,11 @@
     <!-- 99 and below -->
     <TierList :data="tieredData.unranked" id="Unrankded" />
   </div>
+
+  <q-btn round color="purple" class="fixed-bottom-right" 
+    @click.native="scrollToTop" style="margin: 0 15px 15px 0">
+    <q-icon name="keyboard_arrow_up" />
+  </q-btn>
 </template>
 
 <script lang="ts">
@@ -159,9 +164,9 @@ export default class App extends Vue {
         this.setTierData(res.data);
         const highlight = res.data[149];
         this.$nextTick(() => {
-          document.getElementById(highlight.key)!.style.boxShadow =  '0 1px red'; 
-          document.getElementById(highlight.key)!.style.paddingBottom =  '5px'; 
-        });   
+          document.getElementById(highlight.key)!.style.boxShadow = '0 1px red';
+          document.getElementById(highlight.key)!.style.paddingBottom = '5px';
+        });
       }
     }).catch(err => {
       this.isLoading = false;
@@ -340,6 +345,14 @@ export default class App extends Vue {
   public scrollToCurrentTier(id: string) {
     window.scrollTo({
       top: document.getElementById(id)?.offsetTop,
+      left: 0,
+      behavior: "smooth",
+    })
+  }
+
+  public scrollToTop() {
+    window.scrollTo({
+      top: 0,
       left: 0,
       behavior: "smooth",
     })
