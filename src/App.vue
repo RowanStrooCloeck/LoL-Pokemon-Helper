@@ -89,7 +89,7 @@
     <TierList :data="tieredData.unranked" id="Unrankded" />
   </div>
 
-  <q-btn round color="purple" class="fixed-bottom-right" 
+  <q-btn v-if="!atTopPosition" round color="purple" class="fixed-bottom-right" 
     @click.native="scrollToTop" style="margin: 0 15px 15px 0">
     <q-icon name="keyboard_arrow_up" />
   </q-btn>
@@ -122,6 +122,7 @@ export default class App extends Vue {
   public multiValue: LolDataObject[] = [];
   public selectedRegion = {};
   public regions = [{}];
+  public atTopPosition = true;
 
   public all: LolDataObject[] = [];
   public thresholds: any = {};
@@ -142,7 +143,12 @@ export default class App extends Vue {
     this.summonerName = "Shimomeikato";
     this.regions = regionsJson;
     this.selectedRegion = this.regions[2];
+    window.addEventListener('scroll', this.handleScroll);
     this.getData();
+  }
+  
+  unmounted () {
+    window.removeEventListener('scroll', this.handleScroll);
   }
 
   public async getData() {
@@ -309,7 +315,6 @@ export default class App extends Vue {
 
   public get progressAmount() {
     let total = 0;
-
     for (const key in this.tieredData) {
       if (Object.prototype.hasOwnProperty.call(this.tieredData, key)) {
         //@ts-ignore
@@ -356,6 +361,10 @@ export default class App extends Vue {
       left: 0,
       behavior: "smooth",
     })
+  }
+  
+  public handleScroll() {
+    this.atTopPosition =window.scrollY === 0 ? true : false;
   }
 }
 </script>
