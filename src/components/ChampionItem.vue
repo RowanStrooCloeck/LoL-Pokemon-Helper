@@ -1,5 +1,5 @@
 <template>
-    <div class="champion-detail">
+    <div class="champion-detail" :id="champion.key">
         <img :src="`${imageUrl}/${champion.key}.png`" :alt="champion.key" class="img-small"/>
         <span class="item-detail">{{ champion.name }}</span>
         <span class="item-detail">{{ champion.masteryPoints }}</span>

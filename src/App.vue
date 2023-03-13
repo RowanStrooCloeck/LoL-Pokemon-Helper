@@ -119,7 +119,6 @@ export default class App extends Vue {
   public regions = [{}];
 
   public all: LolDataObject[] = [];
-  public amount: number = 150;
   public thresholds: any = {};
   public tieredData: TieredLolDataObjects = {
     challenger: [],
@@ -158,6 +157,11 @@ export default class App extends Vue {
         this.all = res.data.slice();
         res.data.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
         this.setTierData(res.data);
+        const highlight = res.data[149];
+        this.$nextTick(() => {
+          document.getElementById(highlight.key)!.style.boxShadow =  '0 1px red'; 
+          document.getElementById(highlight.key)!.style.paddingBottom =  '5px'; 
+        });   
       }
     }).catch(err => {
       this.isLoading = false;
@@ -248,8 +252,6 @@ export default class App extends Vue {
   }
 
   public setTierData(data: LolDataObject[]) {
-    const test = data[149];
-    console.log(test);
     data.forEach(champ => {
       if (champ.masteryPoints >= this.thresholds.CHALLENGER) {
         this.tieredData.challenger.push(champ);
@@ -412,5 +414,4 @@ export default class App extends Vue {
 }
 </style>
 
-<style>
-</style>
+<style></style>
