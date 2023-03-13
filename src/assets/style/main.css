@@ -48,3 +48,39 @@
   cursor: pointer;
   z-index: 2;
 }
+
+h3 {
+  line-height: initial;
+}
+
+p {
+  margin: 0;
+}
+
+.q-field__control {
+  height: inherit;
+}
+
+.summoner-input input {
+  margin: auto 0;
+  height: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .header .region-selector, .region-selector .multiselect__content-wrapper {
+    background-color: var(--color-background);
+    border: none;
+  }
+  .region-selector .multiselect__tags{
+    background-color: rgba(255, 255, 255, 0.07);
+    border: none;
+  }
+  .region-selector .multiselect__single, 
+  .region-selector .multiselect__input,
+  .region-selector .multiselect__input::placeholder,
+  .region-selector .multiselect__content {
+    color: #FFF;
+    background-color: #262626;
+  }
+}
+

@@ -4,15 +4,15 @@
         <ChampionItem :champion="champ"/>
     </div>
 
-    <div v-if="tierIcon" class="tier">
+    <div v-if="tierIcon" class="tier" :id="id">
         <!-- icon -->
         <img :src="tierIcon" alt="tier-icon" class="tier-icon">
 
         <!-- tier value -->
-        <h3>{{ description }}</h3>
+        <h5 class="tier-text">{{ description }}</h5>
 
         <!-- amount -->
-        <h3 class="amount">{{ amount }} / 150</h3>
+        <h5 class="amount tier-text">{{ amount }} / 150</h5>
     </div>
 
 </template>
@@ -24,6 +24,9 @@ import {Vue, Options, prop} from "vue-class-component";
 import ChampionItem from "./ChampionItem.vue";
 
 class Props {
+    id: string | undefined = prop({
+        required: false,
+    })
     tierIcon: string | undefined = prop({
         required: false,
     })
@@ -51,7 +54,7 @@ export default class TierList extends Vue.with(Props) {
 
 
 <style scoped>
-h3{
+.tier-text {
     margin: auto 0;
 }
 
