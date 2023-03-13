@@ -86,13 +86,19 @@
       :description="`${getLocaleNumberString(thresholds.IRON)}+`" :amount="ironAmount" />
 
     <!-- 99 and below -->
-    <TierList :data="tieredData.unranked" id="Unrankded" />
+    <TierList :data="tieredData.unranked" id="Unranked" />
   </div>
 
-  <q-btn v-if="!atTopPosition" round color="purple" class="fixed-bottom-right" 
-    @click.native="scrollToTop" style="margin: 0 15px 15px 0">
+  <q-btn v-if="!atTopPosition" round color="purple" class="fixed-bottom-right" @click.native="scrollToTop"
+    style="margin: 0 15px 15px 0">
     <q-icon name="keyboard_arrow_up" />
   </q-btn>
+
+  <vue-cookie-accept-decline :debug="false" :disableDecline="true" :showPostponeButton="false" elementId="cookie"
+    position="bottom-left" ref="cookie" transitionName="slideFromBottom" type="floating">
+    <template #message>
+    We use cookies to ensure you get the best experience on our website.
+  </template></vue-cookie-accept-decline>
 </template>
 
 <script lang="ts">
@@ -146,8 +152,8 @@ export default class App extends Vue {
     window.addEventListener('scroll', this.handleScroll);
     this.getData();
   }
-  
-  unmounted () {
+
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   }
 
@@ -362,9 +368,9 @@ export default class App extends Vue {
       behavior: "smooth",
     })
   }
-  
+
   public handleScroll() {
-    this.atTopPosition =window.scrollY === 0 ? true : false;
+    this.atTopPosition = window.scrollY === 0 ? true : false;
   }
 }
 </script>

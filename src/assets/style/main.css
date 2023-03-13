@@ -82,5 +82,24 @@ p {
     color: #FFF;
     background-color: #262626;
   }
+
+  .cookie {
+    background-color: #424851;
+    border: none;
+    color: #FFF;
+  }
+
+  .cookie__floating__content {
+    text-align: center;
+  }
+
+  .cookie__floating__buttons__button {
+    background-color: #424851;
+  }
+
+  .cookie__floating__buttons__button:first-child {
+    border: none;
+  }
+
 }
 
