@@ -2,7 +2,7 @@
     <div class="champion-detail" :id="champion.key">
         <img :src="`${imageUrl}/${champion.key}.png`" :alt="champion.key" class="img-small"/>
         <span class="item-detail">{{ champion.name }}</span>
-        <span class="item-detail">{{ champion.masteryPoints }}</span>
+        <span class="item-detail">{{ getLocaleNumberString(champion.masteryPoints) }}</span>
         <img :src="getMasteryIcon(champion.masteryLevel)" alt="mastery" class="img-small" />
     </div>
     
@@ -28,6 +28,14 @@ export default class ChampionItem extends Vue.with(Props) {
     public getMasteryIcon(level: number) {
         return (<any>MasteryTierIconUrl)[level];
     }
+
+    public getLocaleNumberString(value: number) {
+    if (value) {
+      // @ts-ignore
+      return value.toLocaleString(this.locale);
+    }
+    return 0;
+  }
     
 }
 </script>
