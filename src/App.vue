@@ -97,8 +97,8 @@
   <vue-cookie-accept-decline :debug="false" :disableDecline="true" :showPostponeButton="false" elementId="cookie"
     position="bottom-left" ref="cookie" transitionName="slideFromBottom" type="floating">
     <template #message>
-    We use cookies to ensure you get the best experience on our website.
-  </template></vue-cookie-accept-decline>
+      We use cookies to ensure you get the best experience on our website.
+    </template></vue-cookie-accept-decline>
 </template>
 
 <script lang="ts">
@@ -146,9 +146,9 @@ export default class App extends Vue {
   };
 
   mounted() {
-    this.summonerName = "Shimomeikato";
+    this.summonerName = this.$cookies.get("summonerName");
     this.regions = regionsJson;
-    this.selectedRegion = this.regions[2];
+    this.selectedRegion = this.$cookies.get("region") !== null ? this.$cookies.get("region") : this.regions[2];
     window.addEventListener('scroll', this.handleScroll);
     this.getData();
   }
@@ -167,23 +167,29 @@ export default class App extends Vue {
       this.thresholds = res.data.thresholds;
     });
 
-    // @ts-ignore
-    await axios.get(`${this.baseUrl}/champion-mastery/${this.selectedRegion.code}/${this.summonerName}`).then(res => {
-      if (res) {
+    if (this.summonerName !== null) {
+      this.$cookies.set("summonerName", this.summonerName);
+      this.$cookies.set("region", this.selectedRegion);
+      // @ts-ignore
+      await axios.get(`${this.baseUrl}/champion-mastery/${this.selectedRegion.code}/${this.summonerName}`).then(res => {
+        if (res) {
+          this.isLoading = false;
+          this.all = res.data.slice();
+          res.data.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
+          this.setTierData(res.data);
+          const highlight = res.data[149];
+          this.$nextTick(() => {
+            document.getElementById(highlight.key)!.style.boxShadow = '0 1px red';
+            document.getElementById(highlight.key)!.style.paddingBottom = '5px';
+          });
+        }
+      }).catch(err => {
         this.isLoading = false;
-        this.all = res.data.slice();
-        res.data.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
-        this.setTierData(res.data);
-        const highlight = res.data[149];
-        this.$nextTick(() => {
-          document.getElementById(highlight.key)!.style.boxShadow = '0 1px red';
-          document.getElementById(highlight.key)!.style.paddingBottom = '5px';
-        });
-      }
-    }).catch(err => {
+        // show error on screen
+      });
+    } else {
       this.isLoading = false;
-      // show error on screen
-    });
+    }
   }
 
   public clearAll() {
