@@ -8,12 +8,12 @@
     <q-input class="summoner-input" placeholder="Summoner Name" v-model="summonerName" @change="getData" :dark="darkMode"
       filled />
 
-    <div class="progress" @click="scrollToCurrentTier(progressTier)">
-      <img :src="getTierIconUrl(progressTier)" alt="progress-icon" class="progress-icon">
+    <div class="progress" @click="scrollToCurrentTier(progress.tier)">
+      <img :src="getTierIconUrl(progress.icon)" alt="progress-icon" class="progress-icon">
       <div class="challenge-explanation">
         <h6>{{ challengeTitle }}</h6>
         <p>{{ challengeDescription }}</p>
-        <p>{{ progressAmount }} / 150</p>
+        <div class="row justify-between"><p>{{ progress.threshold }}+</p><p>{{ progress.total }} / 150</p></div>
       </div>
     </div>
   </div>
@@ -31,7 +31,7 @@
   </div>
 
   <div class="aram-content" v-if="!isLoading">
-    <template v-for="selection in multiValue">
+    <template v-for="selection in sortByMastery(multiValue)">
       <div :id="selection.name" class="champion">
         <img :src="getLoadingIcon(selection.key)" :alt="selection.key" class="aram-icon" />
         <h5>{{ selection.name }}</h5>
@@ -51,38 +51,38 @@
     <h3>Overall progress</h3>
     <!-- 115k+ -->
     <TierList :tierIcon="getTierIconUrl('Challenger')" :data="tieredData.challenger" id="challenger"
-      :description="getLocaleNumberString(thresholds.CHALLENGER) + '+'" :amount="tieredData.challenger.length" />
+      :description="`${getLocaleNumberString(thresholds.CHALLENGER)}+`" :amount="tieredData.challenger.length" />
 
     <!-- 107.5k - 115k -->
     <TierList :tierIcon="getTierIconUrl('GrandMaster')" :data="tieredData.grandmaster" id="grandmaster"
       :description="`${getLocaleNumberString(thresholds.GRANDMASTER)}+`" :amount="grandmasterAmount" />
 
     <!-- 100k - 107.5k -->
-    <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master" id="Master"
+    <TierList :tierIcon="getTierIconUrl('Master')" :data="tieredData.master" id="master"
       :description="`${getLocaleNumberString(thresholds.MASTER)}+`" :amount="masterAmount" />
 
     <!-- 50k - 100k -->
-    <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond" id="Diamond"
+    <TierList :tierIcon="getTierIconUrl('Diamond')" :data="tieredData.diamond" id="diamond"
       :description="`${getLocaleNumberString(thresholds.DIAMOND)}+`" :amount="diamondAmount" />
 
     <!-- 10k - 50k -->
-    <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum" id="Platinum"
+    <TierList :tierIcon="getTierIconUrl('Platinum')" :data="tieredData.platinum" id="platinum"
       :description="`${getLocaleNumberString(thresholds.PLATINUM)}+`" :amount="platinumAmount" />
 
     <!-- 5k - 10k -->
-    <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold" id="Gold"
+    <TierList :tierIcon="getTierIconUrl('Gold')" :data="tieredData.gold" id="gold"
       :description="`${getLocaleNumberString(thresholds.GOLD)}+`" :amount="goldAmount" />
 
     <!-- 999 to 500 -->
-    <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver" id="Silver"
+    <TierList :tierIcon="getTierIconUrl('Silver')" :data="tieredData.silver" id="silver"
       :description="`${getLocaleNumberString(thresholds.SILVER)}+`" :amount="silverAmount" />
 
     <!-- 499 to 100 -->
-    <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze" id="Bronze"
+    <TierList :tierIcon="getTierIconUrl('Bronze')" :data="tieredData.bronze" id="bronze"
       :description="`${getLocaleNumberString(thresholds.BRONZE)}+`" :amount="bronzeAmount" />
 
     <!-- 99 and below -->
-    <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron" id="Iron"
+    <TierList :tierIcon="getTierIconUrl('Iron')" :data="tieredData.iron" id="iron"
       :description="`${getLocaleNumberString(thresholds.IRON)}+`" :amount="ironAmount" />
 
     <!-- 99 and below -->
@@ -175,7 +175,7 @@ export default class App extends Vue {
         if (res) {
           this.isLoading = false;
           this.all = res.data.slice();
-          res.data.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
+          res.data = this.sortByMastery(res.data, true);
           this.setTierData(res.data);
           const highlight = res.data[149];
           this.$nextTick(() => {
@@ -210,6 +210,15 @@ export default class App extends Vue {
       return value.toLocaleString(this.locale);
     }
     return 0;
+  }
+
+  public sortByMastery(test: any, desc?: boolean) {
+    if (desc) {
+      // big to small
+      return test.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints > b.masteryPoints ? -1 : 1));
+    }
+    // small to big
+    return test.sort((a: { masteryPoints: number; }, b: { masteryPoints: number; }) => (a.masteryPoints < b.masteryPoints ? -1 : 1));
   }
 
   public get darkMode() {
@@ -325,22 +334,7 @@ export default class App extends Vue {
     }
   }
 
-  public get progressAmount() {
-    let total = 0;
-    for (const key in this.tieredData) {
-      if (Object.prototype.hasOwnProperty.call(this.tieredData, key)) {
-        //@ts-ignore
-        const amount = this.tieredData[key].length;
-        if (total + amount >= 150) {
-          return total;
-        }
-        total += amount;
-      }
-    }
-    return 0;
-  }
-
-  public get progressTier() {
+  public get progress() {
     let tier = '';
     let total = 0;
     for (const key in this.tieredData) {
@@ -355,8 +349,15 @@ export default class App extends Vue {
 
       }
     }
-    tier = (tier === 'grandmaster') ? 'GrandMaster' : tier;
-    return tier.charAt(0).toUpperCase() + tier.slice(1);
+    const icon = (tier === 'grandmaster') ? 'GrandMaster' : tier.charAt(0).toUpperCase() + tier.slice(1);
+    const prop = tier.toUpperCase();
+    const threshold = this.thresholds[prop];
+    return {
+      icon,
+      tier,
+      threshold,
+      total,
+    }
   }
 
   public scrollToCurrentTier(id: string) {
@@ -447,5 +448,3 @@ export default class App extends Vue {
   width: 100%;
 }
 </style>
-
-<style></style>
