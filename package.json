@@ -20,6 +20,7 @@
     "vue": "^3.2.45",
     "vue-class-component": "^8.0.0-rc.1",
     "vue-cookie-accept-decline": "^6.1.0",
+    "vue-cookies": "^1.8.3",
     "vue-multiselect": "^3.0.0-beta.1"
   },
   "devDependencies": {
